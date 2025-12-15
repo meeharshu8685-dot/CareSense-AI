@@ -87,7 +87,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen font-sans text-slate-800 flex flex-col items-center p-4">
+    <div className="min-h-screen font-sans text-slate-800 flex flex-col items-center p-4 bg-gradient-to-br from-teal-50 via-slate-50 to-indigo-50">
       {appState !== AppState.WELCOME && appState !== AppState.LOADING && appState !== AppState.SPLASH && (
         <Header onHomeClick={handleReset} />
       )}
