@@ -32,7 +32,20 @@ const getHealthRiskAnalysis = async (data: SymptomData): Promise<AIAnalysisResul
     - Be extremely CONCISE. 
     - **DO NOT DIAGNOSE** or name conditions. 
     - **DO NOT PRESCRIBE** meds.
-    - Output valid JSON matching the schema.
+    - Output valid JSON matching EXACTLY this structure:
+    {
+      "riskLevel": "Low | Medium | High",
+      "explanation": "string",
+      "copingAndWellness": [
+        { "title": "Tip Title", "description": "Tip Details" }
+      ],
+      "nextSteps": {
+        "whatToDoNow": "string",
+        "whenToSeekHelp": "string",
+        "emergencyGuidance": "string (optional)"
+      },
+      "disclaimer": "string"
+    }
   `;
 
     const userPrompt = `
@@ -64,23 +77,36 @@ const getHealthRiskAnalysis = async (data: SymptomData): Promise<AIAnalysisResul
         try {
             const parsed = JSON.parse(cleanJson);
 
-            // Check if it has the minimal expected structure
-            if (parsed && typeof parsed === 'object' && Array.isArray(parsed.copingAndWellness)) {
-                result = parsed as AIAnalysisResult;
+            // ADAPTER: Handle if AI returns "wellnessTips" (string[]) instead of "copingAndWellness" (obj[])
+            let copingAndWellness = parsed.copingAndWellness;
+            if (!copingAndWellness && Array.isArray(parsed.wellnessTips)) {
+                copingAndWellness = parsed.wellnessTips.map((tip: string) => ({
+                    title: "Tip",
+                    description: tip
+                }));
+            }
+
+            // Check minimal structure
+            if (parsed && typeof parsed === 'object' && Array.isArray(copingAndWellness)) {
+                // Return structured result with normalized data
+                result = {
+                    ...parsed,
+                    copingAndWellness: copingAndWellness
+                } as AIAnalysisResult;
             } else {
-                // It parses but structure is wrong (e.g. { result: "string" } or just a flat object)
+                // It parses but structure is still wrong
                 console.warn("AI returned unstructured JSON:", parsed);
                 result = {
-                    riskLevel: 'Medium', // Safe default
-                    explanation: typeof parsed.result === 'string' ? parsed.result : JSON.stringify(parsed),
+                    riskLevel: parsed.riskLevel || 'Medium',
+                    explanation: parsed.explanation || (typeof parsed.result === 'string' ? parsed.result : JSON.stringify(parsed)),
                     copingAndWellness: [],
-                    nextSteps: {
-                        whatToDoNow: "Please consult a healthcare provider for specific advice.",
-                        whenToSeekHelp: "If symptoms persist or worsen.",
+                    nextSteps: parsed.nextSteps || {
+                        whatToDoNow: "Please consult a healthcare provider.",
+                        whenToSeekHelp: "If symptoms persist.",
                         emergencyGuidance: ""
                     },
-                    disclaimer: "This AI response was unstructured. Please verify all information.",
-                    rawResponse: typeof parsed.result === 'string' ? parsed.result : JSON.stringify(parsed, null, 2)
+                    disclaimer: parsed.disclaimer || "This AI response was unstructured. Please verify all information.",
+                    rawResponse: JSON.stringify(parsed, null, 2)
                 };
             }
         } catch (parseError) {
