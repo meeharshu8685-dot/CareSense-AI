@@ -6,7 +6,7 @@ import LoadingScreen from './components/LoadingScreen';
 import ResultScreen from './components/ResultScreen';
 import SplashScreen from './components/SplashScreen';
 import { AppState, SymptomData, AIAnalysisResult } from './types';
-import { getHealthRiskAnalysis } from './services/geminiService';
+import { getHealthRiskAnalysis } from './services/azureService';
 import { HeartPulseIcon, HomeIcon } from './components/icons';
 
 const Header: React.FC<{ onHomeClick: () => void }> = ({ onHomeClick }) => (
@@ -44,7 +44,7 @@ const App: React.FC = () => {
     setError(null);
     setAnalysisResult(null);
   };
-  
+
   const handleReset = () => {
     setAppState(AppState.WELCOME);
     setError(null);
