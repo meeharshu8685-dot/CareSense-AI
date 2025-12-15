@@ -80,14 +80,14 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ result, onReset }) => {
             <ActivityIcon className="w-6 h-6 mr-3 text-blue-500 flex-shrink-0" />
             <div>
               <strong className="font-semibold text-slate-700">What to do now:</strong>
-              <p>{result.nextSteps?.whatToDoNow || "Consult a healthcare professional."}</p>
+              <p className="whitespace-pre-line">{result.nextSteps?.whatToDoNow || "Consult a healthcare professional."}</p>
             </div>
           </div>
           <div className="flex items-start">
             <PlusCircleIcon className="w-6 h-6 mr-3 text-rose-500 flex-shrink-0" />
             <div>
               <strong className="font-semibold text-slate-700">When to seek professional help:</strong>
-              <p>{result.nextSteps?.whenToSeekHelp || "If symptoms persist."}</p>
+              <p className="whitespace-pre-line">{result.nextSteps?.whenToSeekHelp || "If symptoms persist."}</p>
             </div>
           </div>
 
