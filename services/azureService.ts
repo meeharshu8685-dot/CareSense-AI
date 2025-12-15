@@ -62,9 +62,10 @@ const getHealthRiskAnalysis = async (data: SymptomData): Promise<AIAnalysisResul
         const result = JSON.parse(jsonText) as AIAnalysisResult;
         return result;
 
-    } catch (e) {
+    } catch (e: any) {
         console.error("Failed to call Azure OpenAI or parse response:", e);
-        throw new Error("Received an invalid response from the AI service.");
+        // Throw the actual error message so the UI can show it
+        throw new Error(e.message || "Received an invalid response from the AI service.");
     }
 };
 

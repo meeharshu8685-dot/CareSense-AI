@@ -61,9 +61,10 @@ const App: React.FC = () => {
       const result = await getHealthRiskAnalysis(data);
       setAnalysisResult(result);
       setAppState(AppState.RESULT);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error analyzing symptoms:", err);
-      setError("Sorry, we couldn't analyze your symptoms at this time. Please try again later.");
+      // Show the specific error message to help debugging (e.g. "Env vars missing", "401", "Network Error")
+      setError(err.message || "Sorry, we couldn't analyze your symptoms at this time. Please try again later.");
       setAppState(AppState.INPUT); // Go back to input screen on error
     }
   }, []);
