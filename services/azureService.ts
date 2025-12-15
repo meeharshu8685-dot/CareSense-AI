@@ -57,7 +57,10 @@ const getHealthRiskAnalysis = async (data: SymptomData): Promise<AIAnalysisResul
             throw new Error("No content received from Azure OpenAI");
         }
 
-        const result = JSON.parse(jsonText) as AIAnalysisResult;
+        // Sanitize the JSON text by removing markdown code block markers if present
+        const cleanJson = jsonText.replace(/```json\n?|```/g, '').trim();
+
+        const result = JSON.parse(cleanJson) as AIAnalysisResult;
         return result;
 
     } catch (e: any) {
