@@ -14,7 +14,7 @@ const getHealthRiskAnalysis = async (data: SymptomData): Promise<AIAnalysisResul
     const client = new AzureOpenAI({
         endpoint: import.meta.env.VITE_AZURE_OPENAI_ENDPOINT,
         apiKey: import.meta.env.VITE_AZURE_OPENAI_API_KEY,
-        apiVersion: "2024-05-01-preview",
+        apiVersion: "2024-12-01-preview",
         dangerouslyAllowBrowser: true
     });
 
