@@ -34,20 +34,20 @@ const ResultCard: React.FC<{ title: string; icon: React.ReactNode; children: Rea
 );
 
 const getIconForCopingItem = (title: string) => {
-    const lowerTitle = title.toLowerCase();
-    if (lowerTitle.includes('breath') || lowerTitle.includes('mindful')) return <WindIcon className="w-6 h-6 mr-3 text-sky-500" />;
-    if (lowerTitle.includes('stress') || lowerTitle.includes('anxiety')) return <ZapIcon className="w-6 h-6 mr-3 text-amber-500" />;
-    return <SparklesIcon className="w-6 h-6 mr-3 text-violet-500" />;
+  const lowerTitle = title.toLowerCase();
+  if (lowerTitle.includes('breath') || lowerTitle.includes('mindful')) return <WindIcon className="w-6 h-6 mr-3 text-sky-500" />;
+  if (lowerTitle.includes('stress') || lowerTitle.includes('anxiety')) return <ZapIcon className="w-6 h-6 mr-3 text-amber-500" />;
+  return <SparklesIcon className="w-6 h-6 mr-3 text-violet-500" />;
 };
 
 const CopingItem: React.FC<{ item: CopingAndWellnessGuidance }> = ({ item }) => (
-    <div className="flex items-start">
-        {getIconForCopingItem(item.title)}
-        <div>
-            <strong className="font-semibold text-slate-700">{item.title}:</strong>
-            <p className="text-slate-600">{item.description}</p>
-        </div>
+  <div className="flex items-start">
+    {getIconForCopingItem(item.title)}
+    <div>
+      <strong className="font-semibold text-slate-700">{item.title}:</strong>
+      <p className="text-slate-600">{item.description}</p>
     </div>
+  </div>
 );
 
 
@@ -56,48 +56,63 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ result, onReset }) => {
     <div className="w-full space-y-5 opacity-0 animate-fade-in-up">
       <div className="flex flex-col items-center space-y-4 bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-slate-200/50">
         <h2 className="text-xl font-bold text-slate-700">Your Health Risk Awareness Results</h2>
-        <RiskBadge level={result.riskLevel} />
+        {result.riskLevel && <RiskBadge level={result.riskLevel} />}
         <p className="text-slate-600 text-center text-sm">{result.explanation}</p>
         <p className="text-xs text-slate-500 font-semibold italic">This is not a diagnosis.</p>
       </div>
 
-      <ResultCard title="Coping & Wellness Guidance" icon={<BrainCircuitIcon className="w-6 h-6 mr-3 text-indigo-500" />} color="border-t-indigo-400">
-        <div className="space-y-4">
+      {Array.isArray(result.copingAndWellness) && result.copingAndWellness.length > 0 ? (
+        <ResultCard title="Coping & Wellness Guidance" icon={<BrainCircuitIcon className="w-6 h-6 mr-3 text-indigo-500" />} color="border-t-indigo-400">
+          <div className="space-y-4">
             {result.copingAndWellness.map((item, index) => (
-                <CopingItem key={index} item={item} />
+              <CopingItem key={index} item={item} />
             ))}
-        </div>
-      </ResultCard>
+          </div>
+        </ResultCard>
+      ) : (
+        /* Fallback if structured data is missing but we have explanation */
+        <div className="text-center text-slate-500 italic">No specific wellness steps provided.</div>
+      )}
 
-      <ResultCard title="Next-Step Guidance" icon={<WalkIcon className="w-6 h-6 mr-3 text-teal-500" />} color="border-t-teal-400">
-        <div className="flex items-start">
+      {result.nextSteps && (
+        <ResultCard title="Next-Step Guidance" icon={<WalkIcon className="w-6 h-6 mr-3 text-teal-500" />} color="border-t-teal-400">
+          <div className="flex items-start">
             <ActivityIcon className="w-6 h-6 mr-3 text-blue-500 flex-shrink-0" />
             <div>
-                <strong className="font-semibold text-slate-700">What to do now:</strong>
-                <p>{result.nextSteps.whatToDoNow}</p>
+              <strong className="font-semibold text-slate-700">What to do now:</strong>
+              <p>{result.nextSteps?.whatToDoNow || "Consult a healthcare professional."}</p>
             </div>
-        </div>
-         <div className="flex items-start">
+          </div>
+          <div className="flex items-start">
             <PlusCircleIcon className="w-6 h-6 mr-3 text-rose-500 flex-shrink-0" />
             <div>
-                <strong className="font-semibold text-slate-700">When to seek professional help:</strong>
-                <p>{result.nextSteps.whenToSeekHelp}</p>
+              <strong className="font-semibold text-slate-700">When to seek professional help:</strong>
+              <p>{result.nextSteps?.whenToSeekHelp || "If symptoms persist."}</p>
             </div>
-        </div>
+          </div>
 
-        {result.riskLevel === 'High' && result.nextSteps.emergencyGuidance && (
+          {result.riskLevel === 'High' && result.nextSteps?.emergencyGuidance && (
             <div className="p-3 bg-rose-50 border-l-4 border-status-high text-rose-900 rounded-md mt-2">
-                <p><strong className="font-bold">Emergency Guidance:</strong> {result.nextSteps.emergencyGuidance}</p>
+              <p><strong className="font-bold">Emergency Guidance:</strong> {result.nextSteps.emergencyGuidance}</p>
             </div>
-        )}
-      </ResultCard>
+          )}
+        </ResultCard>
+      )}
+
+      {/* Raw Response Fallback Display */}
+      {result.rawResponse && (
+        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mt-4">
+          <h3 className="text-sm font-bold text-slate-700 mb-2">AI Response Details</h3>
+          <pre className="text-xs text-slate-600 whitespace-pre-wrap font-mono">{result.rawResponse}</pre>
+        </div>
+      )}
 
       <div className="p-4 bg-amber-50 border-l-4 border-amber-400 text-amber-900 rounded-lg text-sm">
         <div className="flex items-start space-x-3">
           <ShieldCheckIcon className="w-6 h-6 flex-shrink-0 text-amber-500 mt-0.5" />
           <div>
             <h2 className="font-bold">Disclaimer</h2>
-            <p>{result.disclaimer}</p>
+            <p>{result.disclaimer || "Not medical advice."}</p>
           </div>
         </div>
       </div>
@@ -111,5 +126,4 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ result, onReset }) => {
     </div>
   );
 };
-
 export default ResultScreen;

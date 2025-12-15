@@ -30,4 +30,5 @@ export interface AIAnalysisResult {
   copingAndWellness: CopingAndWellnessGuidance[];
   nextSteps: NextStepGuidance;
   disclaimer: string;
+  rawResponse?: string; // Fallback for when JSON parsing fails or returns text
 }

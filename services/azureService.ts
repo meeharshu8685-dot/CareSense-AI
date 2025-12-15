@@ -60,7 +60,46 @@ const getHealthRiskAnalysis = async (data: SymptomData): Promise<AIAnalysisResul
         // Sanitize the JSON text by removing markdown code block markers if present
         const cleanJson = jsonText.replace(/```json\n?|```/g, '').trim();
 
-        const result = JSON.parse(cleanJson) as AIAnalysisResult;
+        let result: AIAnalysisResult;
+        try {
+            const parsed = JSON.parse(cleanJson);
+
+            // Check if it has the minimal expected structure
+            if (parsed && typeof parsed === 'object' && Array.isArray(parsed.copingAndWellness)) {
+                result = parsed as AIAnalysisResult;
+            } else {
+                // It parses but structure is wrong (e.g. { result: "string" } or just a flat object)
+                console.warn("AI returned unstructured JSON:", parsed);
+                result = {
+                    riskLevel: 'Medium', // Safe default
+                    explanation: typeof parsed.result === 'string' ? parsed.result : JSON.stringify(parsed),
+                    copingAndWellness: [],
+                    nextSteps: {
+                        whatToDoNow: "Please consult a healthcare provider for specific advice.",
+                        whenToSeekHelp: "If symptoms persist or worsen.",
+                        emergencyGuidance: ""
+                    },
+                    disclaimer: "This AI response was unstructured. Please verify all information.",
+                    rawResponse: typeof parsed.result === 'string' ? parsed.result : JSON.stringify(parsed, null, 2)
+                };
+            }
+        } catch (parseError) {
+            console.warn("AI returned non-JSON text:", cleanJson);
+            // Fallback for completely non-JSON text
+            result = {
+                riskLevel: 'Medium',
+                explanation: "We received a text response instead of structured data.",
+                copingAndWellness: [],
+                nextSteps: {
+                    whatToDoNow: "Review the raw response below.",
+                    whenToSeekHelp: "If you feel unwell.",
+                    emergencyGuidance: ""
+                },
+                disclaimer: "Standard disclaimer applies.",
+                rawResponse: cleanJson
+            };
+        }
+
         return result;
 
     } catch (e: any) {
