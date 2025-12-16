@@ -145,7 +145,7 @@ const App: React.FC = () => {
       {appState !== AppState.SPLASH && (
         <footer className="text-center p-4 text-xs text-slate-500 w-full max-w-md mx-auto space-y-1">
           <p>Built by Harsh</p>
-          <p>© 2026 CareSense AI – Imagine Cup MVP</p>
+          <p>© 2026 CareSense AI</p>
         </footer>
       )}
     </div>
