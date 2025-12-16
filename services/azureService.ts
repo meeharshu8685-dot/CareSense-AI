@@ -44,6 +44,13 @@ const getHealthRiskAnalysis = async (data: SymptomData): Promise<AIAnalysisResul
       // Explain WHY this risk level was chosen. 2-4 short paragraphs. Plain language. Pattern-based.
       "explanation": "string",
 
+      // NEW: Transparency - Why did we choose this risk?
+      "riskAnalysis": {
+        "durationFactor": "string (e.g. '3 days is short')",
+        "severityFactor": "string (e.g. 'Mild pain is low risk')",
+        "symptomLogic": "string (e.g. 'Headache + Fever suggests viral')"
+      },
+
       "copingAndWellness": [
         // COMBINE Section 3 (What You Can Do Right Now) AND Section 4 (Coping & Wellness Support) here.
         // Item 1-4: Actionable Guidance (Specific, time-bound, immediately doable).
@@ -53,6 +60,14 @@ const getHealthRiskAnalysis = async (data: SymptomData): Promise<AIAnalysisResul
         { "title": "Rest Position", "description": "Sit or lie down with head supported..." },
         { "title": "Breathing", "description": "Try box breathing: inhale 4s, hold 4s, exhale 4s..." }
       ],
+
+       // NEW: Daily Plan - Actionable wellness plan
+      "dailyPlan": {
+        "morning": "string (Specific action)",
+        "afternoon": "string (Specific action)",
+        "evening": "string (Specific action)",
+        "beforeSleep": "string (Specific action)"
+      },
 
       "nextSteps": {
         // Section 6: Reassurance.
@@ -120,7 +135,9 @@ const getHealthRiskAnalysis = async (data: SymptomData): Promise<AIAnalysisResul
                 // Return structured result with normalized data
                 result = {
                     ...parsed,
-                    copingAndWellness: copingAndWellness
+                    copingAndWellness: copingAndWellness,
+                    dailyPlan: parsed.dailyPlan,
+                    riskAnalysis: parsed.riskAnalysis
                 } as AIAnalysisResult;
             } else {
                 // It parses but structure is still wrong
@@ -129,6 +146,8 @@ const getHealthRiskAnalysis = async (data: SymptomData): Promise<AIAnalysisResul
                     riskLevel: parsed.riskLevel || 'Medium',
                     explanation: parsed.explanation || (typeof parsed.result === 'string' ? parsed.result : JSON.stringify(parsed)),
                     copingAndWellness: [],
+                    dailyPlan: parsed.dailyPlan,
+                    riskAnalysis: parsed.riskAnalysis,
                     nextSteps: parsed.nextSteps || {
                         whatToDoNow: "Please consult a healthcare provider.",
                         whenToSeekHelp: "If symptoms persist.",

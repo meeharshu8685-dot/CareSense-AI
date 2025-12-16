@@ -24,11 +24,28 @@ export interface NextStepGuidance {
   emergencyGuidance: string;
 }
 
+export type RiskTrend = 'improving' | 'worsening' | 'unchanged' | 'unknown';
+
+export interface DailyPlan {
+  morning: string;
+  afternoon: string;
+  evening: string;
+  beforeSleep: string;
+}
+
+export interface RiskAnalysis {
+  durationFactor: string;
+  severityFactor: string;
+  symptomLogic: string;
+}
+
 export interface AIAnalysisResult {
   riskLevel: 'Low' | 'Medium' | 'High';
   explanation: string;
   copingAndWellness: CopingAndWellnessGuidance[];
+  dailyPlan?: DailyPlan; // New detailed daily plan
+  riskAnalysis?: RiskAnalysis; // transparency factors
   nextSteps: NextStepGuidance;
   disclaimer: string;
-  rawResponse?: string; // Fallback for when JSON parsing fails or returns text
+  rawResponse?: string;
 }

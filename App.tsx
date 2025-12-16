@@ -5,9 +5,49 @@ import InputScreen from './components/InputScreen';
 import LoadingScreen from './components/LoadingScreen';
 import ResultScreen from './components/ResultScreen';
 import SplashScreen from './components/SplashScreen';
-import { AppState, SymptomData, AIAnalysisResult } from './types';
+import { AppState, SymptomData, AIAnalysisResult, RiskTrend } from './types';
 import { getHealthRiskAnalysis } from './services/azureService';
 import { HeartPulseIcon, HomeIcon } from './components/icons';
+
+const RISK_LEVEL_MAP = { 'Low': 1, 'Medium': 2, 'High': 3 };
+
+const calculateTrend = (currentLevel: 'Low' | 'Medium' | 'High'): RiskTrend => {
+  try {
+    const historyItem = localStorage.getItem('careSense_history');
+    if (!historyItem) return 'unknown';
+
+    const history = JSON.parse(historyItem) as { riskLevel: 'Low' | 'Medium' | 'High', date: string }[];
+    if (history.length === 0) return 'unknown';
+
+    const lastRisk = history[0].riskLevel;
+    const currentScore = RISK_LEVEL_MAP[currentLevel];
+    const lastScore = RISK_LEVEL_MAP[lastRisk];
+
+    if (currentScore < lastScore) return 'improving';
+    if (currentScore > lastScore) return 'worsening';
+    return 'unchanged';
+  } catch (e) {
+    console.warn("Failed to calculate trend", e);
+    return 'unknown';
+  }
+};
+
+const saveToHistory = (result: AIAnalysisResult) => {
+  try {
+    const historyItem = localStorage.getItem('careSense_history');
+    let history = historyItem ? JSON.parse(historyItem) : [];
+
+    // Add new user item
+    history.unshift({ riskLevel: result.riskLevel, date: new Date().toISOString() });
+
+    // Keep last 3
+    if (history.length > 3) history = history.slice(0, 3);
+
+    localStorage.setItem('careSense_history', JSON.stringify(history));
+  } catch (e) {
+    console.warn("Failed to save history", e);
+  }
+};
 
 const Header: React.FC<{ onHomeClick: () => void }> = ({ onHomeClick }) => (
   <header className="w-full max-w-md mx-auto flex items-center justify-between py-2">
@@ -28,6 +68,7 @@ const Header: React.FC<{ onHomeClick: () => void }> = ({ onHomeClick }) => (
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.SPLASH);
   const [analysisResult, setAnalysisResult] = useState<AIAnalysisResult | null>(null);
+  const [riskTrend, setRiskTrend] = useState<RiskTrend>('unknown');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -59,6 +100,11 @@ const App: React.FC = () => {
       // The system uses AI reasoning, architected similarly to Azure OpenAI,
       // to perform risk classification based on user-provided symptoms.
       const result = await getHealthRiskAnalysis(data);
+
+      const trend = calculateTrend(result.riskLevel);
+      setRiskTrend(trend);
+      saveToHistory(result);
+
       setAnalysisResult(result);
       setAppState(AppState.RESULT);
     } catch (err: any) {
@@ -80,7 +126,7 @@ const App: React.FC = () => {
       case AppState.LOADING:
         return <LoadingScreen />;
       case AppState.RESULT:
-        return analysisResult ? <ResultScreen result={analysisResult} onReset={handleReset} /> : <LoadingScreen />;
+        return analysisResult ? <ResultScreen result={analysisResult} riskTrend={riskTrend} onReset={handleReset} /> : <LoadingScreen />;
       default:
         return <SplashScreen />;
     }
