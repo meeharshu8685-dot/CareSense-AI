@@ -15,6 +15,9 @@ View your app in AI Studio: https://ai.studio/apps/drive/1vHUvrv2Ek1CFm2_G2I8Onb
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+2. Set the `VITE_AZURE_OPENAI_API_KEY` and other Azure variables in `.env`
 3. Run the app:
    `npm run dev`
+
+## Technology Stack
+See [TECH_STACK.md](./TECH_STACK.md) for full details on the architecture and libraries used.
